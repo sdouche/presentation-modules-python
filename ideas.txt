@@ -1,0 +1,2 @@
+- memoryview
+http://docs.python.org/dev/library/stdtypes.html#memoryview

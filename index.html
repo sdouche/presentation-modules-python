@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="keywords" content="remark,remarkjs,markdown,slideshow,presentation" />
+    <meta name="description" content="A simple, in-browser, markdown-driven slideshow tool." />
+    <title>Balade dans les modules Python 2</title>
+    <link rel="stylesheet" type="text/css" href="theme.css">
+  </head>
+  <body>
+    <textarea id="source">
+name: inverse
+layout: true
+class: center, middle, inverse
+---
+# Balade dans les modules Python 2
+## Sébastien Douche @sdouche
+.footnote[https://github.com/sdouche/presentation-modules-python]
+---
+layout: false
+.left-column[
+  ## Qui suis je ?
+]
+.right-column[
+39 ans. Français. Pas très intelligent mais j'aime comprendre.
+
+- Geek depuis 1984
+
+- Fan de Logiciels Libres depuis 1995
+
+- Développeur (Python, Go, Dart, Rust)
+
+- Sysadmin (Linux / BSD)
+
+- Responsable technique chez un éditeur logiciel français depuis 2007
+
+- Speaker (Git, Python, Go, Dart, organisation, management...)
+
+- Intéressé par le Lifehacking
+
+- Adore les jeux de sociétés modernes
+
+- Motard (Honda CBR RR)
+
+- Aime l'humour noir, le second degré et les blagues pourries
+]
+---
+template: inverse
+# Objectif
+---
+class: center, middle
+## (re)découvrir des modules standards Python
+---
+class: center, middle
+## La plupart des exemples sont tirés de l'excellent site *Python Module of the Week* (PYMOTW)
+
+http://pymotw.com
+---
+template: inverse
+# StringIO (1.4)
+---
+## StringIO
+
+Manipuler des buffers textes avec une API fichier :
+
+```python
+from StringIO import StringIO
+
+output = StringIO()
+output.write('Write in a buffer')
+
+print output.read()
+
+output.close()
+```
+---
+template: inverse
+# collections (2.4)
+---
+## collections
+
+La structure Counter comptabilise le nombre de valeurs équivalentes :
+
+```python
+import collections
+
+c = collections.Counter('abcdaab')
+
+for letter in 'abcde':
+    print '%s : %d' % (letter, c[letter])
+```
+
+Résultat :
+```
+a : 3
+b : 2
+c : 1
+d : 1
+e : 0
+```
+---
+## collections
+
+La méthode elements() retourne un itérateur qui donne tous les items connus :
+
+```python
+import collections
+
+c = collections.Counter('extremely')
+c['z'] = 0
+print c
+print list(c.elements())
+```
+
+Résultat :
+
+```
+Counter({'e': 3, 'm': 1, 'l': 1, 'r': 1, 't': 1, 'y': 1, 'x': 1, 'z': 0})
+['e', 'e', 'e', 'm', 'l', 'r', 't', 'y', 'x']
+````
+---
+## collections
+
+Deque est une file qui permet l'ajout et le retrait des 2 cotés :
+
+```python
+import collections
+
+d = collections.deque('abcdefg')
+print 'Deque:', d
+print 'Length:', len(d)
+print 'Left end:', d[0]
+print 'Right end:', d[-1]
+
+d.remove('c')
+print 'remove(c):', d
+```
+---
+template: inverse
+# contextlib (2.5)
+---
+## contextlib
+
+Utilitaires pour creer des context managers (with).
+
+Rappel :
+
+```python
+with open('/tmp/pymotw.txt', 'wt') as f:
+    f.write('contents go here')
+```
+---
+## contextlib
+
+Un exemple :
+
+```python
+class Context(object):
+
+    def __init__(self):
+        print '__init__()'
+
+    def __enter__(self):
+        print '__enter__()'
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print '__exit__()'
+```
+
+Résultat :
+
+```python
+with Context():
+    print 'Doing work in the context'
+
+__init__()
+__enter__()
+Doing work in the context
+__exit__()
+```
+---
+template: inverse
+# sched (1.4)
+---
+
+Ce module permet de lancer des tâches à des moments précis :
+
+```python
+import sched
+import time
+
+scheduler = sched.scheduler(time.time, time.sleep)
+
+def print_event(name):
+    print 'EVENT:', time.time(), name
+
+print 'START:', time.time()
+scheduler.enter(2, 1, print_event, ('first',))
+scheduler.enter(3, 1, print_event, ('second',))
+
+scheduler.run()
+```
+
+Résultat :
+
+```bash
+START: 1361446599.49
+EVENT: 1361446601.49 first
+EVENT: 1361446602.49 second
+```
+---
+template: inverse
+# Queue  (1.4)
+---
+## Queue
+
+Le module Queue fournit une implémentation FIFO thread-safe. Utilisable par exemple pour la transmission de messages.
+
+```python
+import Queue
+
+q = Queue.Queue()
+
+for i in range(5):
+    q.put(i)
+
+while not q.empty():
+    print q.get()
+```
+
+Résultat :
+
+```
+0
+1
+2
+3
+4
+```
+---
+## Queue
+
+Queue LIFO :
+
+```python
+import Queue
+
+q = Queue.LifoQueue()
+
+for i in range(5):
+    q.put(i)
+
+while not q.empty():
+    print q.get()
+```
+
+Résultat :
+
+```
+4
+3
+2
+1
+0
+```
+---
+template: inverse
+# itertools (2.3)
+---
+## itertools
+
+Fournit un ensemble de fonctions pour travailler sur des datasets itérables.
+
+chain() prend des itérateurs en entrée et retourne un seul itérateur
+
+```python
+from itertools import chain
+
+for i in chain([1, 2, 3], ['a', 'b', 'c']):
+    print i
+```
+
+Résultat :
+
+```bash
+1
+2
+3
+a
+b
+c
+```
+---
+## itertools
+
+izip() combine les éléments de plusieurs itérateurs et retourne un seul itérateur :
+
+```python
+from itertools import izip
+
+for i in izip([1, 2, 3], ['a', 'b', 'c']):
+    print i
+```
+
+Résultat :
+
+```bash
+(1, 'a')
+(2, 'b')
+(3, 'c')
+```
+---
+## itertools
+
+islice() retourne les items sélecionnés selon un itérateur d'entrée.
+
+```python
+from itertools import islice
+
+print 'Stop at 5:'
+for i in islice(count(), 5):
+    print i
+
+print 'Start at 5, Stop at 10:'
+for i in islice(count(), 5, 10):
+    print i
+
+print 'By tens to 100:'
+for i in islice(count(), 0, 100, 10):
+    print i
+```
+
+Résultat :
+
+```bash
+Stop at 5:
+0
+1
+2
+3
+4
+Start at 5, Stop at 10:
+5
+6
+7
+8
+9
+By tens to 100:
+0
+10
+20
+30
+40
+50
+60
+70
+80
+90
+```
+---
+## itertools
+
+tee() retourne plusieurs itérateurs à partir d'une source unique.
+
+```python
+from itertools import *
+
+r = islice(count(), 5)
+i1, i2 = tee(r)
+
+for i in i1:
+    print 'i1:', i
+for i in i2:
+    print 'i2:', i
+```
+
+Résultat :
+
+```bash
+i1: 0
+i1: 1
+i1: 2
+i1: 3
+i1: 4
+i2: 0
+i2: 1
+i2: 2
+i2: 3
+i2: 4
+```
+---
+## itertools
+
+imap() retourne un itérateur qui appelle une fonction sur les valeurs de l'itérateur en entrée.
+
+```python
+from itertools import *
+
+print 'Doubles:'
+for i in imap(lambda x:2*x, xrange(5)):
+    print i
+
+print 'Multiples:'
+for i in imap(lambda x,y:(x, y, x*y), xrange(5), xrange(5,10)):
+    print '%d * %d = %d' % i
+```
+
+Résultat :
+
+```xml
+0
+2
+4
+6
+8
+Multiples:
+0 * 5 = 0
+1 * 6 = 6
+2 * 7 = 14
+3 * 8 = 24
+4 * 9 = 36
+```
+---
+## itertools
+
+cycle() retourne un itérateur qui répète indéfiniment le contenu des arguments.
+
+```python
+from itertools import cycle
+
+i = 0
+for item in cycle(['a', 'b', 'c']):
+    i += 1
+    if i == 10:
+        break
+    print (i, item)
+```
+
+Résultat :
+
+```xml
+(1, 'a')
+(2, 'b')
+(3, 'c')
+(4, 'a')
+(5, 'b')
+(6, 'c')
+(7, 'a')
+(8, 'b')
+(9, 'c')
+```
+---
+## itertools
+
+repeat() retourne un itérateur qui produit la même valeur.
+
+```python
+from itertools import repeat
+
+for i in repeat('over-and-over', 5):
+    print i
+```
+
+Résultat :
+
+```xml
+over-and-over
+over-and-over
+over-and-over
+over-and-over
+over-and-over
+```
+---
+## itertools
+
+Exemple d'utilisation de plusieurs opérateurs itertools (izip et imap) :
+
+```python
+from itertools import count, izip, repeat
+
+for i, s in izip(count(), repeat('over-and-over', 5)):
+    print i, s
+```
+
+Résultat :
+
+```xml
+0 over-and-over
+1 over-and-over
+2 over-and-over
+3 over-and-over
+4 over-and-over
+```
+---
+## itertools
+
+Exemple d'utilisation de plusieurs opérateurs itertools (izip et imap) :
+
+```python
+from itertools import *
+
+for i in imap(lambda x,y:(x, y, x*y), repeat(2), xrange(5)):
+    print '%d * %d = %d' % i
+```
+
+Résultat :
+
+```xml
+2 * 0 = 0
+2 * 1 = 2
+2 * 2 = 4
+2 * 3 = 6
+2 * 4 = 8
+```
+---
+## itertools
+
+dropwhile() retourne un itérateur qui renvoie des éléments aprés qu'une condition soit fausse.
+
+```python
+from itertools import *
+
+def should_drop(x):
+    print 'Testing:', x
+    return (x<1)
+
+for i in dropwhile(should_drop, [ -1, 0, 1, 2, 3, 4, 1, -2 ]):
+    print 'Yielding:', i
+```
+
+Résultat :
+
+```xml
+Testing: -1
+Testing: 0
+Testing: 1
+Yielding: 1
+Yielding: 2
+Yielding: 3
+Yielding: 4
+Yielding: 1
+Yielding: -2
+```
+---
+## itertools
+
+takewhile() est l'opposé de dropwhile().
+
+```python
+from itertools import *
+
+def should_take(x):
+    print 'Testing:', x
+    return (x<2)
+
+for i in takewhile(should_take, [ -1, 0, 1, 2, 3, 4, 1, -2 ]):
+    print 'Yielding:', i
+```
+
+Résultat :
+
+```xml
+Testing: -1
+Yielding: -1
+Testing: 0
+Yielding: 0
+Testing: 1
+Yielding: 1
+Testing: 2
+```
+---
+## itertools
+
+permutations() retourne un itérateur d'éléments permutés.
+
+```python
+permutations('ABCD', 2)
+```
+
+Résultat :
+
+```xml
+AB AC AD BA BC BD CA CB CD DA DB DC
+```
+---
+## itertools
+
+combinaisons() retourne un itérateur de sous séquences.
+
+```python
+combinations('ABCD', 2)
+```
+
+Résultat :
+
+```xml
+AB AC AD BC BD CD
+```
+---
+template: inverse
+# json (2.6)
+---
+## json
+
+API de sérialisation *JavaScript Object Notation* (JSON). Comprend les types Python (string, unicode, int, float, list, tuple, dict).
+
+```python
+import json
+
+data = [ { 'a':'A', 'b':(2, 4), 'c':3.0 } ]
+print 'DATA:', repr(data)
+
+data_string = json.dumps(data)
+print 'JSON:', data_string
+```
+
+Résultat :
+
+```python
+DATA: [{'a': 'A', 'c': 3.0, 'b': (2, 4)}]
+JSON: [{"a": "A", "c": 3.0, "b": [2, 4]}]
+```
+---
+## json
+
+On peut indenter et trier :
+
+```python
+import json
+
+data = [ { 'a':'A', 'b':(2, 4), 'c':3.0 } ]
+print 'DATA:', repr(data)
+
+print 'NORMAL:', json.dumps(data, sort_keys=True)
+print 'INDENT:', json.dumps(data, sort_keys=True, indent=2)
+```
+
+Résultat :
+
+```xml
+DATA: [{'a': 'A', 'c': 3.0, 'b': (2, 4)}]
+NORMAL: [{"a": "A", "b": [2, 4], "c": 3.0}]
+INDENT: [
+  {
+    "a": "A",
+    "b": [
+      2,
+      4
+    ],
+    "c": 3.0
+  }
+]
+```
+---
+template: inverse
+# csv (2.3)
+---
+## csv
+
+Manipulattion de données au format tabulaire.
+
+```python
+import csv
+import sys
+
+f = open('file.txt', 'rt')
+try:
+    reader = csv.reader(f)
+    for row in reader:
+        print row
+finally:
+    f.close()
+```
+
+Résultat :
+
+```xml
+['Title 1', 'Title 2', 'Title 3']
+['1', 'a', '08/18/07']
+['2', 'b', '08/19/07']
+['3', 'c', '08/20/07']
+['4', 'd', '08/21/07']
+['5', 'e', '08/22/07']
+```
+---
+template: inverse
+# linecache (1.4)
+---
+## linecache
+
+Lecture rapide de fichiers (utile pour lire plusieurs lignes d'un fichier).
+
+```python
+>>> import linecache
+>>> linecache.getline('/etc/passwd', 4)
+'sys:x:3:3:sys:/dev:/bin/sh\n'
+```
+---
+template: inverse
+# dircache (1.4)
+---
+## dircache
+
+Wrapper autour de os.listdir() qui met en cache le résultat.
+
+```python
+import dircache
+
+path = '.'
+first = dircache.listdir(path)
+second = dircache.listdir(path)
+
+print 'Contents :', first
+print 'Identical:', first is second
+print 'Equal    :', first == second
+```
+
+Résultat :
+
+```
+Contents : ['__init__.py', 'dircache_annotate.py', 'index.rst']
+Identical: True
+Equal    : True
+```
+---
+template: inverse
+# sqlite3 (2.5)
+---
+## sqlite3
+
+Fournir une interface DB-API 2.0 pour la base de données SQLite (1 fichier).
+
+```python
+import os
+import sqlite3
+
+db_filename = 'todo.db'
+schema_filename = 'todo_schema.sql'
+
+db_is_new = not os.path.exists(db_filename)
+
+with sqlite3.connect(db_filename) as conn:
+    if db_is_new:
+        print 'Creating schema'
+        with open(schema_filename, 'rt') as f:
+            schema = f.read()
+        conn.executescript(schema)
+
+        print 'Inserting initial data'
+
+        conn.execute("""
+        insert into project (name, description, deadline)
+        values ('pymotw', 'Python Module of the Week', '2010-11-01')
+        """)
+    else:
+        print 'Database exists'
+```
+---
+## sqlite3
+
+On récupere les données avec fetchone(), fetchall() et fetchmany().
+
+```python
+import sqlite3
+
+db_filename = 'todo.db'
+
+with sqlite3.connect(db_filename) as conn:
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    select id, priority, from task where project = 'pymotw'
+    """)
+
+    for row in cursor.fetchall():
+        task_id, priority, details, status, deadline = row
+        print '%2d {%d} %-20s [%-8s] (%s)' % (task_id, priority)
+```
+---
+template: inverse
+# mmap (2.1)
+---
+## mmap
+
+Lecture rapide de fichiers (pas de buffer).
+
+```pyrhon
+import mmap
+import contextlib
+
+with open('lorem.txt', 'r') as f:
+    with contextlib.closing(mmap.mmap(f.fileno(), 0,
+                            access=mmap.ACCESS_READ)) as m:
+        print 'First 10 bytes via read :', m.read(10)
+        print 'First 10 bytes via slice:', m[:10]
+        print '2nd   10 bytes via read :', m.read(10)
+```
+---
+template: inverse
+# multiprocessing (2.6)
+---
+## multiprocessing
+
+API qui instantie des process au lieu de thread. Evite les soucis de mémoire (fragmentation, fuite).
+
+Un exemple simple :
+
+```python
+import multiprocessing
+
+def worker(num):
+    """thread worker function"""
+    print 'Worker:', num
+    return
+
+if __name__ == '__main__':
+    jobs = []
+    for i in range(5):
+        p = multiprocessing.Process(target=worker, args=(i,))
+        jobs.append(p)
+        p.start()
+```
+
+Résultat :
+
+```xml
+Worker: 0
+Worker: 1
+Worker: 2
+Worker: 3
+Worker: 4
+```
+---
+template: inverse
+# traceback (1.4)
+---
+## traceback
+
+Permet de jouer avec la strack trace (extraction, formattage).
+
+```python
+import traceback
+import sys
+from pprint import pprint
+
+try:
+    0 / 0
+except Exception, err:
+    print 'format_exception():'
+    exc_type, exc_value, exc_tb = sys.exc_info()
+    pprint(traceback.format_exception(exc_type, exc_value, exc_tb))
+```
+
+Résultat:
+
+```xml
+format_exception():
+['Traceback (most recent call last):\n',
+ '  File "test.py", line 6, in <module>\n    0 / 0\n',
+ 'ZeroDivisionError: integer division or modulo by zero\n']
+```
+---
+template: inverse
+# warnings (2.1)
+---
+## warnings
+
+Avertir le programmeur d'un changement futur.
+
+```python
+import warnings
+
+print 'Before the warning'
+warnings.warn('This is a warning message')
+print 'After the warning'
+```
+
+Résultat :
+
+```
+warnings_warn.py:13: UserWarning: This is a warning message
+  warnings.warn('This is a warning message')
+Before the warning
+After the warning
+```
+---
+## warnings
+
+Il est possible de filter ces messages avec 5 actions (error. ignore, always, default, module, once):
+
+```python
+import warnings
+
+warnings.simplefilter('error', UserWarning)
+
+print 'Before the warning'
+warnings.warn('This is a warning message')
+print 'After the warning'
+```
+
+Résultat :
+
+```
+Before the warning
+Traceback (most recent call last):
+  File "warnings_warn_raise.py", line 15, in <module>
+    warnings.warn('This is a warning message')
+UserWarning: This is a warning message
+```
+---
+## warnings
+
+Il est aussi possible de filter ces messages en ligne de commande.
+
+```
+$ python -W "error::UserWarning::0" warnings_warn.py
+
+Before the warning
+Traceback (most recent call last):
+  File "warnings_warn.py", line 13, in <module>
+    warnings.warn('This is a warning message')
+UserWarning: This is a warning message
+```
+---
+## warnings
+
+Avec la fonction filterwarnings(), on peut par exemple filtrer sur le message:
+
+```python
+import warnings
+
+warnings.filterwarnings('ignore', '.*do not.*',)
+
+warnings.warn('Show this message')
+warnings.warn('Do not show this message')
+```
+
+Résultat :
+
+```
+warnings_filterwarnings_message.py:14: UserWarning: Show this message
+  warnings.warn('Show this message')
+```
+
+La meme chose en CLI :
+
+```xml
+$ python -W "ignore:do not:UserWarning::0" warnings_filtering.py
+```
+---
+## warnings
+
+Il est possible de formater les messages :
+
+```python
+import warnings
+
+def warning_on_one_line(message, category, filename,
+                        lineno, file=None, line=None):
+    return ' %s:%s: %s:%s' % (filename, lineno,
+                              category.__name__, message)
+
+warnings.warn('Warning message, before')
+warnings.formatwarning = warning_on_one_line
+warnings.warn('Warning message, after')
+```
+
+Résultat :
+
+```xml
+warnings_formatwarning.py:15: UserWarning: Warning message, before
+  warnings.warn('Warning message, before')
+ warnings_formatwarning.py:17: UserWarning:Warning message, after
+```
+---
+template: inverse
+## That's all folks!
+    </textarea>
+    <script src="remark.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      var hljs = remark.highlighter.engine;
+    </script>
+    <script src="remark.language.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      var slideshow = remark.create({
+          highlightStyle: 'monokai',
+          highlightLanguage: 'remark'
+        }) ;
+    </script>
+  </body>
+</html>
+
